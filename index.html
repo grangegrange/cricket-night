@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cricket Night - Darts Tournament</title>
+  <style>
+    :root {
+      --bg: #1a1a2e;
+      --bg-secondary: #151520;
+      --fg: #e0e0e0;
+      --muted: #666;
+      --accent: #ffd700;
+      --accent-dim: #b8860b;
+      --red: #ff4444;
+      --green: #44ff44;
+      --yellow: #ffd700;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--fg);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 100%;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      padding: 40px 20px;
+      background: var(--bg-secondary);
+      border-radius: 16px;
+      margin-bottom: 30px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 2.5rem;
+      background: linear-gradient(135deg, var(--fg) 0%, var(--accent) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    header p {
+      color: var(--muted);
+      margin: 10px 0 0;
+      font-size: 1rem;
+    }
+
+    .main-content {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 20px;
+    }
+
+    @media (min-width: 768px) {
+      .main-content {
+        grid-template-columns: 2fr 1fr;
+      }
+    }
+
+    .tournament-section {
+      background: var(--bg-secondary);
+      border-radius: 12px;
+      padding: 20px;
+    }
+
+    .team-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 12px;
+      margin: 20px 0;
+    }
+
+    .team-cell {
+      background: var(--bg);
+      border: 2px solid var(--muted);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      min-height: 140px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: border-color 0.3s;
+    }
+
+    .team-cell:hover {
+      border-color: var(--accent);
+    }
+
+    .team-cell.selected {
+      border-color: var(--accent);
+      background: rgba(255, 215, 0, 0.1);
+    }
+
+    .team-name {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .team-score {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--fg);
+    }
+
+    .vs {
+      text-align: center;
+      padding: 0 20px;
+      color: var(--muted);
+      font-size: 1.2rem;
+    }
+
+    .matches-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+    }
+
+    .matches-table th,
+    .matches-table td {
+      padding: 12px;
+      text-align: center;
+      border-bottom: 1px solid var(--muted);
+    }
+
+    .matches-table th {
+      background: var(--bg-secondary);
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .matches-table tr:hover td {
+      background: var(--bg);
+    }
+
+    .result-cell {
+      color: var(--green);
+      font-weight: bold;
+    }
+
+    .result-cell.lost {
+      color: var(--red);
+    }
+
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .input-group label {
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+
+    .input-group input {
+      background: var(--bg);
+      border: 1px solid var(--muted);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--fg);
+      font-size: 1rem;
+      width: 100%;
+    }
+
+    .input-group input:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    .btn {
+      background: var(--accent);
+      color: var(--bg);
+      border: none;
+      padding: 12px 24px;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .btn:hover {
+      background: var(--accent-dim);
+    }
+
+    .btn:active {
+      background: #a57700;
+    }
+
+    .status {
+      padding: 8px 12px;
+      border-radius: 6px;
+      margin: 10px 0;
+      font-size: 0.85rem;
+    }
+
+    .status.on-track { background: rgba(68, 255, 68, 0.2); color: var(--green); }
+    .status.at-risk { background: rgba(255, 165, 0, 0.2); color: var(--yellow); }
+    .status.off-track { background: rgba(255, 68, 68, 0.2); color: var(--red); }
+
+    .superfinal {
+      margin-top: 20px;
+      padding: 20px;
+      background: linear-gradient(135deg, var(--bg) 0%, var(--bg-secondary) 100%);
+      border-radius: 12px;
+      text-align: center;
+    }
+
+    .superfinal h3 {
+      margin: 0 0 15px 0;
+      color: var(--accent);
+    }
+
+    .score-display {
+      font-size: 3rem;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+
+    .phase-badge {
+      display: inline-block;
+      padding: 4px 8px;
+      background: var(--bg);
+      border-radius: 4px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      margin: 0 4px;
+    }
+
+    .phase-cricket { background: #ff6b6b; color: white; }
+    .phase-superfinal { background: #ffd700; color: var(--bg); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Cricket Night</h1>
+      <p>Турнир по дартсу в режиме «Крикет»</p>
+    </header>
+
+    <div class="main-content">
+      <!-- Tournament Panel -->
+      <div class="tournament-section">
+        <h3>Участники</h3>
+        <div class="input-group">
+          <label>Имя игрока</label>
+          <input type="text" id="playerName" placeholder="Введите имя">
+        </div>
+        <button class="btn" onclick="addPlayer()">Добавить игрока</button>
+
+        <div class="team-grid" id="playerGrid">
+          <!-- Players will be added here -->
+        </div>
+
+        <div class="status on-track" id="statusEl">Готовность: ожидание игроков</div>
+      </div>
+
+      <!-- Matches Table -->
+      <div class="tournament-section">
+        <h3>Расписание (каждый с каждым)</h3>
+        <table class="matches-table" id="matchesTable">
+          <thead>
+            <tr>
+              <th>Матч</th>
+              <th>Игрок 1</th>
+              <th>Игрок 2</th>
+              <th>Результат</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Matches will be generated -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Superfinal -->
+      <div class="tournament-section superfinal" id="superfinalSection" style="display: none;">
+        <h3>Суперфинал</h3>
+        <div class="score-display" id="superfinalScore">0</div>
+        <p id="superfinalLabel">Финальный счёт</p>
+        <button class="btn" onclick="startSuperfinal()">Начать суперфинал</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Player management
+    let players = [];
+    let matchResults = {};
+    let currentPhase = 'round robin';
+
+    function addPlayer() {
+      const name = document.getElementById('playerName').value.trim();
+      if (name && !players.some(p => p.name === name)) {
+        players.push({ name, wins: 0, losses: 0 });
+        renderPlayerGrid();
+        document.getElementById('playerName').value = '';
+        updateStatus();
+      }
+    }
+
+    function renderPlayerGrid() {
+      const grid = document.getElementById('playerGrid');
+      grid.innerHTML = '';
+
+      players.forEach((player, i) => {
+        const cell = document.createElement('div');
+        cell.className = 'team-cell';
+        cell.innerHTML = `
+          <div class="team-name">${player.name}</div>
+          <div class="team-score" data-index="${i}">0</div>
+        `;
+        grid.appendChild(cell);
+      });
+
+      // Generate round-robin matches
+      generateMatches();
+    }
+
+    function generateMatches() {
+      const tableBody = document.querySelector('#matchesTable tbody');
+      tableBody.innerHTML = '';
+
+      for (let i = 0; i < players.length; i++) {
+        for (let j = i + 1; j < players.length; j++) {
+          const row = document.createElement('tr');
+          row.innerHTML = `
+            <td>${i + 1}.${j + 1}</td>
+            <td><span class="player-name" data-index="${i}">${players[i].name}</span></td>
+            <td><span class="player-name" data-index="${j}">${players[j].name}</span></td>
+            <td>
+              <select class="input-group" onchange="recordResult(${i}, ${j}, this)">
+                <option value="">--</option>
+                <option value="1-0">1-0</option>
+                <option value="0-1">0-1</option>
+                <option value="0-0">0-0</option>
+              </select>
+            </td>
+          `;
+          tableBody.appendChild(row);
+        }
+      }
+
+      // Show superfinal section if enough players
+      if (players.length >= 4) {
+        document.getElementById('superfinalSection').style.display = 'block';
+      } else {
+        document.getElementById('superfinalSection').style.display = 'none';
+      }
+    }
+
+    function recordResult(i, j, select) {
+      const result = select.value;
+      if (!result) return;
+
+      // Store result
+      const key = `${i}-${j}`;
+      matchResults[key] = result;
+
+      // Update scores
+      if (result === '1-0') {
+        players[i].wins++;
+        players[j].losses++;
+      } else if (result === '0-1') {
+        players[j].wins++;
+        players[i].losses++;
+      } else if (result === '0-0') {
+        // Draw - both get half point
+        players[i].wins += 0.5;
+        players[j].wins += 0.5;
+      }
+
+      // Update display
+      document.querySelectorAll('.team-score').forEach((el, idx) => {
+        el.textContent = players[idx].wins;
+      });
+
+      updateStatus();
+    }
+
+    function updateStatus() {
+      const totalGames = players.length > 1 ? players.length * (players.length - 1) / 2 : 0;
+      const completed = Object.keys(matchResults).length;
+      const statusEl = document.getElementById('statusEl');
+
+      if (completed >= totalGames) {
+        statusEl.textContent = 'Готовность: турнир завершен';
+        statusEl.className = 'status off-track';
+      } else if (completed > 0) {
+        statusEl.textContent = `Готовность: ${completed}/${totalGames} матчей`;
+        statusEl.className = 'status at-risk';
+      } else {
+        statusEl.textContent = 'Готовность: ожидание игроков';
+        statusEl.className = 'status on-track';
+      }
+    }
+
+    // Superfinal
+    function startSuperfinal() {
+      // Find top 2 players
+      const sorted = [...players].sort((a, b) => b.wins - a.wins);
+      const finalists = sorted.slice(0, 2);
+
+      const scoreEl = document.getElementById('superfinalScore');
+      const labelEl = document.getElementById('superfinalLabel');
+
+      let finalScore = 0;
+      // Simple count - first to 3 points wins
+      const match = {
+        player1: finalists[0],
+        player2: finalists[1],
+        score1: 0,
+        score2: 0,
+        target: 3
+      };
+
+      // Simulate superfinal - in real app this would be interactive
+      if (match.score1 > match.score2) {
+        finalScore = match.score1;
+      } else {
+        finalScore = match.score2;
+      }
+
+      scoreEl.textContent = finalScore;
+      labelEl.textContent = `Суперфинал: ${finalists[0].name} vs ${finalists[1].name}`;
+    }
+  </script>
+</body>
+</html>
